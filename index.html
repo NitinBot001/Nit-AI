@@ -25,10 +25,112 @@
   <div id="root"></div>
 </body>
 <script>
+  let deferredPrompt;
+  
+  // Capture the beforeinstallprompt event
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    
+    // Automatically show install popup after a short delay
+    setTimeout(() => {
+      showInstallPopup();
+    }, 2000); // Show after 2 seconds
+  });
+
+  function showInstallPopup() {
+    if (!deferredPrompt) return;
+    
+    // Create popup overlay
+    const overlay = document.createElement('div');
+    overlay.id = 'pwaInstallOverlay';
+    overlay.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10000;
+    `;
+    
+    // Create popup
+    const popup = document.createElement('div');
+    popup.style.cssText = `
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+      text-align: center;
+      max-width: 400px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    `;
+    
+    popup.innerHTML = `
+      <h2 style="margin: 0 0 15px 0; color: #333;">Install App</h2>
+      <p style="margin: 0 0 25px 0; color: #666;">Install this app on your device for a better experience and offline access.</p>
+      <button id="installBtn" style="
+        background: #007bff;
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 8px;
+        font-size: 16px;
+        cursor: pointer;
+        margin-right: 10px;
+      ">Install</button>
+      <button id="laterBtn" style="
+        background: #f0f0f0;
+        color: #333;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 8px;
+        font-size: 16px;
+        cursor: pointer;
+      ">Maybe Later</button>
+    `;
+    
+    overlay.appendChild(popup);
+    document.body.appendChild(overlay);
+    
+    // Install button click
+    document.getElementById('installBtn').addEventListener('click', async () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        console.log(`Install outcome: ${outcome}`);
+        deferredPrompt = null;
+      }
+      overlay.remove();
+    });
+    
+    // Later button click
+    document.getElementById('laterBtn').addEventListener('click', () => {
+      overlay.remove();
+    });
+    
+    // Close on overlay click
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) {
+        overlay.remove();
+      }
+    });
+  }
+
+  // Listen for app installed
+  window.addEventListener('appinstalled', () => {
+    console.log('PWA installed successfully');
+    deferredPrompt = null;
+  });
+
+  // Register service worker
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/worker.js')
       .then(reg => console.log('Service Worker registered', reg))
       .catch(err => console.log('Service Worker registration failed', err));
   }
-  </script>
+</script>
 </html>
