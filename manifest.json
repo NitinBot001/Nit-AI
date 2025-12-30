@@ -1,0 +1,17 @@
+{
+  "name": "Nit-AI",
+  "short_name": "Nit-AI",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#C05621",
+  "theme_color": "#DA7756",
+  "description": "AI Chat with privacy.",
+  "icons": [
+    {
+      "src": "/vite.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
