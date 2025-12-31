@@ -27,10 +27,20 @@
 <script>
   let deferredPrompt;
   
+  // Check if user dismissed the popup permanently
+  function isDismissedPermanently() {
+    return localStorage.getItem('pwaInstallDismissed') === 'true';
+  }
+  
   // Capture the beforeinstallprompt event
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
+    
+    // Don't show if user dismissed permanently
+    if (isDismissedPermanently()) {
+      return;
+    }
     
     // Automatically show install popup after a short delay
     setTimeout(() => {
@@ -91,6 +101,16 @@
         font-size: 16px;
         cursor: pointer;
       ">Maybe Later</button>
+      <div style="margin-top: 20px;">
+        <button id="neverBtn" style="
+          background: transparent;
+          color: #999;
+          border: none;
+          font-size: 14px;
+          cursor: pointer;
+          text-decoration: underline;
+        ">Don't Show Again</button>
+      </div>
     `;
     
     overlay.appendChild(popup);
@@ -112,6 +132,12 @@
       overlay.remove();
     });
     
+    // Don't show again button click
+    document.getElementById('neverBtn').addEventListener('click', () => {
+      localStorage.setItem('pwaInstallDismissed', 'true');
+      overlay.remove();
+    });
+    
     // Close on overlay click
     overlay.addEventListener('click', (e) => {
       if (e.target === overlay) {
@@ -128,7 +154,7 @@
 
   // Register service worker
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/worker.js')
+    navigator.serviceWorker.register('/service-worker.js')
       .then(reg => console.log('Service Worker registered', reg))
       .catch(err => console.log('Service Worker registration failed', err));
   }
